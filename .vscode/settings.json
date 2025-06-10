@@ -1,0 +1,20 @@
+{
+    "editor.rulers": [
+        80
+    ],
+    "clangd.path": "/usr/bin/clangd",
+    "clangd.arguments": [
+        "--experimental-modules-support",
+        "--log=verbose",
+        "--pretty",
+        "--background-index",
+        "--header-insertion-decorators",
+        "--enable-config",
+        "--header-insertion=never",
+        "--malloc-trim",
+        "--compile-commands-dir=./target",
+        "-j=8",
+    ],
+    "C_Cpp.default.configurationProvider": "mesonbuild.mesonbuild",
+    "C_Cpp.default.compileCommands": "/home/rquarx/Projects/bar/target/compile_commands.json",
+}

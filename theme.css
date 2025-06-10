@@ -1,0 +1,83 @@
+#bar-window {
+    font-family: 'JetBrainsMono Nerd Font';
+    font-size: 11px;
+    color: white;
+
+    all: unset;
+    background-color: transparent;
+}
+
+
+#bar-box {
+    background-color: #1D2228;
+    box-shadow: inset 0px -3px #283039;
+}
+
+
+#workspace-label-box {
+    border-radius: 0px 100px 0px 0px;
+    background-color: #283039;
+    padding-right: 2em;
+    margin-top: 1px;
+}
+
+
+#workspace-label {
+    padding-left: 1em;
+}
+
+
+#workspace-corner {
+    min-width: 50px;
+
+    box-shadow: -7px 10px #283039;
+    border-radius: 0px 0px 0px 75%;
+    background-color: transparent;
+    margin: 0px 4px 0px -4px;
+}
+
+
+#time-label-box {
+    border-radius: 100px 100px 0px 0px;
+    background-color: #283039;
+    padding: 0em 2em;
+    margin-top: 1px;
+}
+
+
+#time-corner-l {
+    min-width: 50px;
+
+    box-shadow: 7px 10px #283039;
+    border-radius: 0px 0px 75% 0px;
+    background-color: transparent;
+    margin: 0px -4px 0px 4px;
+}
+
+
+#time-corner-r {
+    min-width: 50px;
+
+    box-shadow: -7px 10px #283039;
+    border-radius: 0px 0px 0px 75%;
+    background-color: transparent;
+    margin: 0px 4px 0px -4px;
+}
+
+
+#battery-label-box {
+    border-radius: 100px 0px 0px 0px;
+    background-color: #283039;
+    padding: 0em 1em 0em 2em;
+    margin-top: 1px;
+}
+
+
+#battery-corner {
+    min-width: 50px;
+
+    box-shadow: 7px 10px #283039;
+    border-radius: 0px 0px 75% 0px;
+    background-color: transparent;
+    margin: 0px -4px 0px 4px;
+}

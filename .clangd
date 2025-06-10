@@ -1,0 +1,13 @@
+CompileFlags:
+    Add: [ -xc, -std=c23 ]
+    Compiler: clang
+
+Diagnostics:
+    UnusedIncludes: Strict
+
+InlayHints:
+    ParameterNames: No
+    BlockEnd: No
+    Designators: No
+    DeducedTypes: Yes
+    TypeNameLimit: 10
