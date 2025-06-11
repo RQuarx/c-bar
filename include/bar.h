@@ -5,12 +5,6 @@
 #include <gtk-layer-shell.h>
 #include <gtk/gtk.h>
 
-#define APP_DATA(ptr) ((app_data_t*)ptr)
-
-static const int32_t
-    W_WIDTH  = 1920,
-    W_HEIGHT = 21;
-
 static const char *css =
 "#bar-window {"
 "    font-family: 'JetBrainsMono Nerd Font';"
@@ -56,31 +50,41 @@ static const char *css =
 "    padding: 0em 1em 0em 2em;"
 "}";
 
+static const int32_t
+    W_WIDTH  = 1920,
+    W_HEIGHT = 21;
 
-static GtkWindow *bar_window;
-static GtkBox    *bar_box;
+struct bar_widgets
+{
+    GtkBox *box;
 
-static GtkLabel
-    *bar_ws_label,
-    *bar_time_label,
-    *bar_battery_label;
+    GtkLabel
+        *ws_label,
+        *time_label,
+        *battery_label;
+};
 
+#define WIDGETS(ptr) ((struct bar_widgets *)ptr)
+
+struct data
+{
+    GtkLabel *label;
+    gchar    *text;
+};
 
 GtkBox *new_hbox(gint32 spacing);
 
-gboolean create_bar(void);
+struct bar_widgets *create_bar(void);
 
 void
-    create_window(void),
-    create_container(void),
-    create_ws_indicator(void),
-    create_time_indicator(void),
-    create_bat_indicator(void);
+    create_window        (GtkWindow **window),
+    create_container     (GtkWindow *window,
+                          struct bar_widgets *widgets),
+    create_ws_indicator  (struct bar_widgets *widgets),
+    create_time_indicator(struct bar_widgets *widgets),
+    create_bat_indicator (struct bar_widgets *widgets);
 
-void
-    update_workspace_label(gpointer data),
-    update_time_label     (gpointer data),
-    update_battery_label  (gpointer data);
+void update_label(gpointer data);
 
 
 #endif /* __BAR_H__ */

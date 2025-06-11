@@ -92,7 +92,7 @@ err:
 
 
 gpointer
-ws_listener_thread(gpointer /* args */)
+ws_listener_thread(gpointer args)
 {
     gchar *socket_path = get_sway_socket_path();
     if    (socket_path == NULL) return NULL;
@@ -120,12 +120,15 @@ ws_listener_thread(gpointer /* args */)
     g_free(socket_path);
     send_ipc_message(sockfd, SWAY_IPC_MESSAGE_TYPE, "[\"workspace\"]");
 
-    gchar
-        workspace_name[3],
-        header        [6];
+    gchar header [6];
     guint32
         length = 0,
         type   = 0;
+
+    struct data data = {
+        .label = WIDGETS(args)->ws_label,
+        .text  = g_new(gchar, 3)
+    };
 
     while (TRUE) {
         if (read   (sockfd, header, 6) != 6 ||
@@ -134,9 +137,10 @@ ws_listener_thread(gpointer /* args */)
         read(sockfd, &length, 4);
         read(sockfd, &type,   4);
 
-        read_workspace_json(workspace_name, sockfd, length);
-        if ((gchar *)workspace_name == NULL) continue;
-        g_idle_add_once(update_workspace_label, workspace_name);
+        read_workspace_json(data.text, sockfd, length);
+        if (data.text == NULL) continue;
+
+        g_idle_add_once(update_label, &data);
     }
 
     close(sockfd);
@@ -145,44 +149,51 @@ ws_listener_thread(gpointer /* args */)
 
 
 gpointer
-bat_and_time_listener(gpointer /* args */)
+bat_and_time_listener(gpointer args)
 {
     FILE      *bat_file  = NULL;
     struct tm *time_info = g_new(struct tm, 1);
     time_t     now       = 0;
     guint8     cycle     = 4;
-    gchar
-        label    [20],
-        bat_level[5];
+
+    struct data
+        bat_data = {
+            .label = WIDGETS(args)->battery_label,
+            .text  = g_new(gchar, 4)
+        },
+        time_data = {
+            .label = WIDGETS(args)->time_label,
+            .text  = g_new(gchar, 20)
+        };
 
     while (TRUE) {
         if (cycle == 4) {
             bat_file     = fopen(BAT_FILE, "r");
             if (bat_file == NULL) break;
 
-            for (guint8 i = 0; i < 5; i++) bat_level[i] = '\0';
+            for (guint8 i = 0; i < 5; i++) bat_data.text[i] = '\0';
             fseek(bat_file, 0, SEEK_SET);
 
-            if (fgets(bat_level, 5, bat_file) == NULL) break;
+            if (fgets(bat_data.text, 5, bat_file) == NULL) break;
             fclose(bat_file);
 
             for (guint8 i = 0; i < 4; i++) {
-                if (bat_level[i] != '\n') continue;
+                if (bat_data.text[i] != '\n') continue;
 
-                bat_level[i] = '%';
+                bat_data.text[i] = '%';
                 break;
             }
 
-            g_idle_add_once(update_battery_label, bat_level);
+            g_idle_add_once(update_label, &bat_data);
             cycle = 0;
         }
 
         now = time(NULL);
         localtime_r(&now, time_info);
 
-        strftime(label, 20, "%H:%M %a %d %b", time_info);
+        strftime(time_data.text, 20, "%H:%M %a %d %b", time_info);
 
-        g_idle_add_once(update_time_label, label);
+        g_idle_add_once(update_label, &time_data);
 
         cycle++;
         sleep(1);
