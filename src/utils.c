@@ -1,101 +1,68 @@
 #include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <errno.h>
 #include <stdio.h>
+
+#include <sys/time.h>
+
 #include "utils.h"
 
 
 void
-print_err(const char *restrict fmt, ...)
+fprint_time(FILE *restrict stream)
 {
-    va_list arg;
-    va_start(arg, fmt);
-    fprintf(stderr, "err: ");
-    vfprintf(stderr, fmt, arg);
-    va_end(arg);
-    fputc('\n', stderr);
-    fflush(stderr);
+    struct timeval tv                  = {};
+    struct tm     *tm_info             = g_new(struct tm, 1);
+    time_t         seconds_since_epoch = time(NULL);
+
+    gettimeofday(&tv, NULL);
+    localtime_r(&seconds_since_epoch, tm_info);
+
+    gint64 milliseconds = tv.tv_usec / 1000;
+    gint32
+        minutes = tm_info->tm_min,
+        seconds = tm_info->tm_sec;
+
+    g_free(tm_info);
+    fprintf(stream, "%02d:%02d.%03ld", minutes, seconds, milliseconds);
 }
 
 
 void
-print_log(const char *restrict fmt, ...)
+fprint_label(FILE        *restrict stream,
+             const gchar *restrict label_text,
+             guint8                label_color)
 {
-    va_list arg;
-    va_start(arg, fmt);
-    fprintf(stdout, "log: ");
-    vfprintf(stdout, fmt, arg);
-    va_end(arg);
-    fputc('\n', stdout);
-    fflush(stdout);
+    fprint_time(stream);
+    fprintf    (stream,
+                " \033[1;37m[\033[1;%hhdm%s\033[1;37m]\033[0;0m: ",
+                label_color, label_text);
 }
 
 
 void
-print_dbg(const char *restrict fmt, ...)
+print_err(const gchar *restrict fmt, ...)
 {
-    va_list arg;
+    va_list  arg = {};
     va_start(arg, fmt);
-    fprintf(stdout, "debug: ");
-    vfprintf(stdout, fmt, arg);
+
+    fprint_label(stderr, "ERR", 31);
+    vfprintf    (stderr, fmt, arg);
+    fputc('\n',  stderr);
+    fflush      (stderr);
+
     va_end(arg);
-    fputc('\n', stdout);
-    fflush(stdout);
-}
-
-char *
-s_strdup(const char *ptr)
-{
-    char *new_ptr = strdup(ptr);
-
-    if (new_ptr == NULL) {
-        print_err(
-            "s_strdup(\"%s\"): Failed to duplicate string %s: %s",
-            ptr, ptr, strerror(errno)
-        );
-        return NULL;
-    }
-
-    return new_ptr;
 }
 
 
-int8_t
-s_read(int32_t fd, char *buff, size_t nbytes)
+void
+print_log(const gchar *restrict fmt, ...)
 {
-    size_t total = 0;
+    va_list arg = {};
+    va_start(arg, fmt);
 
-    while (total < nbytes) {
-        ssize_t n = read(fd, buff + total, nbytes - total);
-        if (n > 0) {
-            total += n;
-            continue;
-        }
+    fprint_label(stdout, "LOG", 32);
+    vfprintf    (stdout, fmt, arg);
+    fputc('\n',  stdout);
+    fflush      (stdout);
 
-        if (n == 0) {
-            free(buff);
-            return -1;
-        }
-
-        print_err("s_read(...): Error occured while trying to read: %s", ERR);
-    }
-
-    buff[nbytes] = '\0';
-    return 1;
-}
-
-
-void *
-s_malloc(size_t nbytes)
-{
-    void *ptr = malloc(nbytes);
-    if (ptr != NULL) return ptr;
-
-    print_err(
-        "s_malloc(%zu): Failed to allocate %zu bytes of memory: %s",
-        nbytes, nbytes, ERR
-    );
-    return NULL;
+    va_end(arg);
 }

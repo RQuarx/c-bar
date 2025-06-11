@@ -22,12 +22,9 @@ add_project_arguments([
 executable(
     'c-bar',
     files(
-        'src/modules/battery.c',
-        'src/modules/time.c',
-        'src/modules/workspace.c',
-
         'src/bar.c',
         'src/main.c',
+        'src/modules.c',
         'src/utils.c',
     ),
     include_directories: include_directories('include'),

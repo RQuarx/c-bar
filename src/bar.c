@@ -1,38 +1,54 @@
+#ifdef DEBUG
 #include "utils.h"
+#endif
 #include "bar.h"
+
 
 
 gboolean
 create_bar()
 {
-    GtkCssProvider *cssProvider = gtk_css_provider_new();
-    gtk_css_provider_load_from_path(cssProvider, "theme.css", NULL);
+    GError         *err          = NULL;
+    GtkCssProvider *css_provider = gtk_css_provider_new();
+    if (css_provider == NULL) {
+#ifdef DEBUG_MODE
+        print_err("gtk_css_provider_new(): Failed to create a GtkCssProvider.");
+#endif
+        return FALSE;
+    }
+
+    if (gtk_css_provider_load_from_data(css_provider,
+                                        css,
+                                        strlen(css),
+                                        &err) == FALSE) {
+#ifdef DEBUG_MODE
+        print_err("create_bar(): Failed to load css from data: %s",
+                  err->message);
+#endif
+        return FALSE;
+    }
+
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
-        GTK_STYLE_PROVIDER(cssProvider),
+        GTK_STYLE_PROVIDER(css_provider),
         GTK_STYLE_PROVIDER_PRIORITY_USER
     );
 
-    if (create_window()         == FALSE) return FALSE;
-    if (create_container()      == FALSE) return FALSE;
-    if (create_ws_indicator()   == FALSE) return FALSE;
-    if (create_time_indicator() == FALSE) return FALSE;
-    if (create_bat_indicator()  == FALSE) return FALSE;
+    create_window();
+    create_container();
+    create_ws_indicator();
+    create_time_indicator();
+    create_bat_indicator();
 
     gtk_widget_show_all(GTK_WIDGET(bar_window));
     return TRUE;
 }
 
 
-gboolean
+void
 create_window()
 {
     bar_window = GTK_WINDOW(gtk_window_new(GTK_WINDOW_TOPLEVEL));
-
-    if (bar_window == NULL) {
-        print_err("create_window(): Failed to create window: %s", ERR);
-        return FALSE;
-    }
 
     gtk_layer_init_for_window(bar_window);
 
@@ -44,18 +60,13 @@ create_window()
 
     gtk_widget_set_size_request(GTK_WIDGET(bar_window), W_WIDTH, W_HEIGHT);
     gtk_window_resize(bar_window, W_WIDTH, W_HEIGHT);
-
-    print_log("create_window(): Successfully created a window.");
-    return TRUE;
 }
 
 
-gboolean
+void
 create_container()
 {
     bar_box = GTK_BOX(new_hbox(0));
-
-    if (bar_box == NULL) return FALSE;
 
     gtk_widget_set_name(GTK_WIDGET(bar_box), "bar-box");
 
@@ -63,13 +74,10 @@ create_container()
     gtk_widget_set_hexpand(GTK_WIDGET(bar_box), TRUE);
 
     gtk_container_add(GTK_CONTAINER(bar_window), GTK_WIDGET(bar_box));
-
-    print_log("create_container(): Successfully created a container.");
-    return TRUE;
 }
 
 
-gboolean
+void
 create_ws_indicator()
 {
     GtkBox
@@ -79,18 +87,7 @@ create_ws_indicator()
 
     bar_ws_label = GTK_LABEL(gtk_label_new("1"));
 
-    if (ws_box    == NULL || ws_label_box == NULL||
-        ws_corner == NULL || bar_ws_label == NULL
-    ) {
-        print_err(
-            "create_ws_indicator(): Failed to create workspace indicator: %s",
-            ERR
-        );
-        return FALSE;
-    }
-
     /* Workspace container */
-    gtk_widget_set_name(GTK_WIDGET(ws_box), "workspace-container");
     gtk_widget_set_halign(GTK_WIDGET(ws_box), GTK_ALIGN_FILL);
 
     gtk_container_add(GTK_CONTAINER(bar_box), GTK_WIDGET(ws_box));
@@ -112,15 +109,10 @@ create_ws_indicator()
     gtk_widget_set_halign(GTK_WIDGET(ws_corner), GTK_ALIGN_START);
 
     gtk_container_add(GTK_CONTAINER(ws_box), GTK_WIDGET(ws_corner));
-
-    print_log(
-        "create_ws_indicator(): Successfully created a workspace indicator."
-    );
-    return TRUE;
 }
 
 
-gboolean
+void
 create_time_indicator()
 {
     GtkBox
@@ -131,19 +123,7 @@ create_time_indicator()
 
     bar_time_label = GTK_LABEL(gtk_label_new("00:00 Sun 0 Jan"));
 
-    if (tm_box         == NULL || tm_label_box  == NULL||
-        tm_corner_l    == NULL || tm_corner_r   == NULL ||
-        bar_time_label == NULL
-    ) {
-        print_err(
-            "create_time_indicator(): Failed to create time indicator: %s",
-            ERR
-        );
-        return FALSE;
-    }
-
     /* Time container */
-    gtk_widget_set_name(GTK_WIDGET(tm_box), "time-container");
     gtk_widget_set_halign(GTK_WIDGET(tm_box), GTK_ALIGN_CENTER);
     gtk_widget_set_hexpand(GTK_WIDGET(tm_box), TRUE);
 
@@ -172,16 +152,10 @@ create_time_indicator()
     gtk_widget_set_halign(GTK_WIDGET(tm_corner_r), GTK_ALIGN_START);
 
     gtk_container_add(GTK_CONTAINER(tm_box), GTK_WIDGET(tm_corner_r));
-
-    print_log(
-        "create_time_indicator(): Successfully created a time indicator."
-    );
-
-    return TRUE;
 }
 
 
-gboolean
+void
 create_bat_indicator()
 {
     GtkBox
@@ -191,18 +165,7 @@ create_bat_indicator()
 
     bar_battery_label = GTK_LABEL(gtk_label_new("0%"));
 
-    if (bat_box    == NULL || bat_label_box     == NULL||
-        bat_corner == NULL || bar_battery_label == NULL
-    ) {
-        print_err(
-            "create_bat_indicator(): Failed to create battery indicator: %s",
-            ERR
-        );
-        return FALSE;
-    }
-
     /* Battery container */
-    gtk_widget_set_name(GTK_WIDGET(bat_box), "battery-container");
     gtk_widget_set_halign(GTK_WIDGET(bat_box), GTK_ALIGN_FILL);
 
     gtk_container_add(GTK_CONTAINER(bar_box), GTK_WIDGET(bat_box));
@@ -225,55 +188,27 @@ create_bat_indicator()
 
     gtk_container_add(
         GTK_CONTAINER(bat_label_box), GTK_WIDGET(bar_battery_label));
-
-    print_log(
-        "create_bat_indicator(): Successfully created a battery indicator."
-    );
-    return TRUE;
 }
 
 
 GtkBox *
-new_hbox(int32_t spacing)
+new_hbox(gint32 spacing)
 {
-    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
+    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing));
 
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_FILL);
-
-    if (box == NULL) {
-        print_err("new_hbox(%d): Failed to create box.", spacing);
-        return NULL;
-    }
-
     return box;
 }
 
 
-gboolean
+void
 update_workspace_label(gpointer data)
-{
-    gtk_label_set_text(bar_ws_label, (char*)data);
-    free(data);
-    return FALSE;
-}
+{ gtk_label_set_text(bar_ws_label, (const gchar *)data); }
 
-
-gboolean
+void
 update_time_label(gpointer args)
-{
-    char *label = s_malloc(20);
-    strftime(label, 20, "%H:%M %a %d %b", (struct tm *)args);
+{ gtk_label_set_text(bar_time_label, (const gchar *)args); }
 
-    gtk_label_set_text(bar_time_label, label);
-
-    free(label);
-    return FALSE;
-}
-
-
-gboolean
+void
 update_battery_label(gpointer args)
-{
-    gtk_label_set_text(bar_battery_label, (char *)args);
-    return FALSE;
-}
+{ gtk_label_set_text(bar_battery_label, (const gchar *)args); }

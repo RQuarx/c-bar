@@ -2,8 +2,8 @@
 #ifndef __UTILS_H__
 #define __UTILS_H__
 
-#include <stddef.h>
-#include <stdint.h>
+#include <stdio.h>
+#include <glib.h>
 
 #define ERR              strerror(errno)
 #define SOCKADDR(ptr)    ((struct sockaddr *)ptr)
@@ -12,15 +12,40 @@
 typedef struct sockaddr_un unix_sock;
 
 
-void print_err(const char *restrict fmt, ...);
-void print_log(const char *restrict fmt, ...);
-void print_dbg(const char *restrict fmt, ...);
+void
 
+    /**
+     * @brief Prints the current time in format MM:SS.MS to @p stream.
+     *
+     * @param stream The stream that the time will be outputted to.
+     */
+    fprint_time(FILE *restrict stream),
 
-char   *s_strdup(const char *ptr);
-int8_t  s_read(int32_t fd, char *buff, size_t nbytes);
+    /**
+     * @brief Prints @p label_text to @p stream .
+     *
+     * @param stream      The stream that the label will be outputted to.
+     * @param label_text  The text that will be put inside the label.
+     * @param label_color The color of @p label_text .
+     */
+    fprint_label(FILE        *restrict stream,
+                 const gchar *restrict label_text,
+                 guint8                label_color),
 
-void *s_malloc(size_t nbytes);
+    /**
+     * @brief Prints a formatted error message to stderr.
+     *
+     * @param fmt Format string.
+     * @param ... Arguments for the format string.
+     */
+     print_err(const gchar *restrict fmt, ...),
 
+    /**
+     * @brief Prints a formatted log message to stdout.
+     *
+     * @param fmt Format string.
+     * @param ... Arguments for the format string.
+     */
+    print_log(const gchar *restrict fmt, ...);
 
 #endif /* __UTILS_H__ */

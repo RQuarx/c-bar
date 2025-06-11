@@ -11,6 +11,51 @@ static const int32_t
     W_WIDTH  = 1920,
     W_HEIGHT = 21;
 
+static const char *css =
+"#bar-window {"
+"    font-family: 'JetBrainsMono Nerd Font';"
+"    background-color: transparent;"
+"    font-size: 11px;"
+"    color: white;"
+"    all: unset;"
+"}"
+"#workspace-corner,#time-corner-r,"
+"#battery-corner,#time-corner-l {"
+"    background-color: transparent;"
+"    min-width: 50px;"
+"}"
+"#workspace-corner,#time-corner-r {"
+"    box-shadow: -7px 10px #283039;"
+"    border-radius: 0px 0px 0px 75%;"
+"    margin: 0px 4px 0px -4px;"
+"}"
+"#battery-corner,#time-corner-l {"
+"    box-shadow: 7px 10px #283039;"
+"    border-radius: 0px 0px 75% 0px;"
+"    margin: 0px -4px 0px 4px;"
+"}"
+"#bar-box {"
+"    box-shadow: inset 0px -3px #283039;"
+"    background-color: #1D2228;"
+"}"
+"#workspace-label-box,#time-label-box,#battery-label-box {"
+"    background-color: #283039;"
+"    margin-top: 1px;"
+"}"
+"#workspace-label { padding-left: 1em; }"
+"#workspace-label-box {"
+"    border-radius: 0px 100px 0px 0px;"
+"    padding-right: 2em;"
+"}"
+"#time-label-box {"
+"    border-radius: 100px 100px 0px 0px;"
+"    padding: 0em 2em;"
+"}"
+"#battery-label-box {"
+"    border-radius: 100px 0px 0px 0px;"
+"    padding: 0em 1em 0em 2em;"
+"}";
+
 
 static GtkWindow *bar_window;
 static GtkBox    *bar_box;
@@ -21,17 +66,18 @@ static GtkLabel
     *bar_battery_label;
 
 
-GtkBox *new_hbox(int32_t spacing);
+GtkBox *new_hbox(gint32 spacing);
 
-gboolean
-    create_bar(),
-    create_window(),
-    create_container(),
-    create_ws_indicator(),
-    create_time_indicator(),
-    create_bat_indicator();
+gboolean create_bar(void);
 
-gboolean
+void
+    create_window(void),
+    create_container(void),
+    create_ws_indicator(void),
+    create_time_indicator(void),
+    create_bat_indicator(void);
+
+void
     update_workspace_label(gpointer data),
     update_time_label     (gpointer data),
     update_battery_label  (gpointer data);
