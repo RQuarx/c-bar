@@ -13,7 +13,7 @@
 gchar *
 get_sway_socket_path(void)
 {
-    gchar path[PATH_MAX] = { 0 };
+    gchar path[PATH_MAX] = { '\0' };
     FILE *fp             = popen(SOCKET_CMD, "r");
 
     if (fp == NULL) {
@@ -87,7 +87,7 @@ read_workspace_json(gchar  *workspace_name,
     return;
 
 err:
-    strncpy(workspace_name, "1\0", 2);
+    strncpy(workspace_name, "1", 2);
 }
 
 
@@ -121,8 +121,8 @@ ws_listener_thread(gpointer /* args */)
     send_ipc_message(sockfd, SWAY_IPC_MESSAGE_TYPE, "[\"workspace\"]");
 
     gchar
-        *workspace_name = g_malloc(3),
-        *header         = g_malloc(6);
+        workspace_name[3],
+        header        [6];
     guint32
         length = 0,
         type   = 0;
@@ -135,12 +135,10 @@ ws_listener_thread(gpointer /* args */)
         read(sockfd, &type,   4);
 
         read_workspace_json(workspace_name, sockfd, length);
-        if (workspace_name == NULL) continue;
+        if ((gchar *)workspace_name == NULL) continue;
         g_idle_add_once(update_workspace_label, workspace_name);
     }
 
-    g_free(workspace_name);
-    g_free(header);
     close(sockfd);
     return NULL;
 }
@@ -154,8 +152,8 @@ bat_and_time_listener(gpointer /* args */)
     time_t     now       = 0;
     guint8     cycle     = 4;
     gchar
-        *label     = g_malloc(20),
-        *bat_level = g_malloc(5);
+        label    [20],
+        bat_level[5];
 
     while (TRUE) {
         if (cycle == 4) {
@@ -190,9 +188,6 @@ bat_and_time_listener(gpointer /* args */)
         sleep(1);
     }
 
-    g_free(bat_level);
     g_free(time_info);
-    g_free(label);
-
     return NULL;
 }

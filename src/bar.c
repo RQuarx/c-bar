@@ -1,6 +1,4 @@
-#ifdef DEBUG
 #include "utils.h"
-#endif
 #include "bar.h"
 
 
@@ -11,9 +9,7 @@ create_bar()
     GError         *err          = NULL;
     GtkCssProvider *css_provider = gtk_css_provider_new();
     if (css_provider == NULL) {
-#ifdef DEBUG_MODE
-        print_err("gtk_css_provider_new(): Failed to create a GtkCssProvider.");
-#endif
+        print_err("Failed to create a GtkCssProvider.");
         return FALSE;
     }
 
@@ -21,10 +17,7 @@ create_bar()
                                         css,
                                         strlen(css),
                                         &err) == FALSE) {
-#ifdef DEBUG_MODE
-        print_err("create_bar(): Failed to load css from data: %s",
-                  err->message);
-#endif
+        print_err("Failed to load css from data: %s", err->message);
         return FALSE;
     }
 
