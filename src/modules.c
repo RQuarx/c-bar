@@ -4,7 +4,6 @@
 #include <cJSON.h>
 
 #include "modules.h"
-#include "utils.h"
 #include "bar.h"
 
 
@@ -14,16 +13,11 @@ get_sway_socket_path(void)
     gchar path[PATH_MAX] = { '\0' };
     FILE *fp             = popen(SOCKET_CMD, "r");
 
-    if (fp == nullptr) {
-        print_err("get_sway_socket_path(): Failed to run command %s: %s",
-                  SOCKET_CMD, ERR);
-        return nullptr;
-    }
+    if (fp == nullptr) return nullptr;
 
     if (fgets(path, sizeof(path), fp) != nullptr)
         path[strcspn(path, "\n")] = 0;
     else {
-        print_err("get_sway_socket_path(): Failed to fgets: %s", ERR);
         pclose(fp);
         return nullptr;
     }
@@ -62,11 +56,7 @@ read_workspace_json(gchar  *workspace_name,
         *name    = nullptr;
 
     g_free(payload);
-    if (!root) {
-        print_err("read_workspace_json(...): Failed to parse JSON:\n%s",
-                  payload);
-        goto err;
-    }
+    if (!root) goto err;
 
     type = cJSON_GetObjectItem(root, "change");
     if (type == nullptr) goto err;
@@ -99,18 +89,13 @@ ws_listener(gpointer args)
     unix_sock addr   = {};
 
     sockfd = socket(AF_UNIX, SOCK_STREAM, 0);
-    if (sockfd == -1) {
-        print_err("socket(...): Failed to create a new socket: %s",
-                  ERR);
-        return nullptr;
-    }
+    if (sockfd == -1) return nullptr;
 
     memset(&addr, 0, sizeof(unix_sock));
     addr.sun_family = AF_UNIX;
     strncpy(addr.sun_path, socket_path, strlen(socket_path));
 
     if (connect(sockfd, SOCKADDR(&addr), sizeof(unix_sock)) == -1) {
-        print_err("connect(...): Failed to connect to a socket: %s", ERR);
         close(sockfd);
         return nullptr;
     }

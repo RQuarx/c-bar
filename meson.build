@@ -25,7 +25,6 @@ executable(
         'src/bar.c',
         'src/main.c',
         'src/modules.c',
-        'src/utils.c',
     ),
     include_directories: include_directories('include'),
 )

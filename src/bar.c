@@ -1,26 +1,12 @@
 #include "modules.h"
-#include "utils.h"
 #include "bar.h"
 
 
 gboolean
 create_bar(struct bar_widgets *widgets)
 {
-    GError         *err          = nullptr;
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    if (css_provider == nullptr) {
-        print_err("Failed to create a GtkCssProvider.");
-        return FALSE;
-    }
-
-    if (gtk_css_provider_load_from_data(css_provider,
-                                        css,
-                                        strlen(css),
-                                        &err) == FALSE) {
-        print_err("Failed to load css from data: %s", err->message);
-        return FALSE;
-    }
-
+    gtk_css_provider_load_from_data(css_provider, css, strlen(css), nullptr);
     gtk_style_context_add_provider_for_screen(
         gdk_screen_get_default(),
         GTK_STYLE_PROVIDER(css_provider),
@@ -63,7 +49,7 @@ void
 create_container(GtkWindow          *window,
                  struct bar_widgets *widgets)
 {
-    widgets->box = GTK_BOX(new_hbox(0));
+    widgets->box = GTK_BOX(new_hbox());
 
     gtk_widget_set_name(GTK_WIDGET(widgets->box), "bar-box");
 
@@ -78,9 +64,9 @@ void
 create_ws_indicator(struct bar_widgets *widgets)
 {
     GtkBox
-        *ws_box       = new_hbox(0),
-        *ws_label_box = new_hbox(0),
-        *ws_corner    = new_hbox(0);
+        *ws_box       = new_hbox(),
+        *ws_label_box = new_hbox(),
+        *ws_corner    = new_hbox();
 
     widgets->ws_label = GTK_LABEL(gtk_label_new("1"));
 
@@ -114,10 +100,10 @@ void
 create_time_indicator(struct bar_widgets *widgets)
 {
     GtkBox
-        *tm_box       = new_hbox(0),
-        *tm_label_box = new_hbox(0),
-        *tm_corner_l  = new_hbox(0),
-        *tm_corner_r  = new_hbox(0);
+        *tm_box       = new_hbox(),
+        *tm_label_box = new_hbox(),
+        *tm_corner_l  = new_hbox(),
+        *tm_corner_r  = new_hbox();
 
     struct tm time_info = {};
     time_t    now       = 0;
@@ -167,9 +153,9 @@ void
 create_bat_indicator(struct bar_widgets *widgets)
 {
     GtkBox
-        *bat_box       = new_hbox(0),
-        *bat_corner    = new_hbox(0),
-        *bat_label_box = new_hbox(0);
+        *bat_box       = new_hbox(),
+        *bat_corner    = new_hbox(),
+        *bat_label_box = new_hbox();
 
     widgets->battery_label = GTK_LABEL(gtk_label_new("0%"));
 
@@ -200,9 +186,9 @@ create_bat_indicator(struct bar_widgets *widgets)
 
 
 GtkBox *
-new_hbox(gint32 spacing)
+new_hbox()
 {
-    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, spacing));
+    GtkBox *box = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
 
     gtk_widget_set_halign(GTK_WIDGET(box), GTK_ALIGN_FILL);
     return box;

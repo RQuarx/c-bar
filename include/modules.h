@@ -4,6 +4,8 @@
 
 #include <glib.h>
 
+#define SOCKADDR(ptr) ((struct sockaddr *)ptr)
+
 static const char
     *const SOCKET_CMD = "/usr/bin/sway --get-socketpath",
     *const MAGIC      = "i3-ipc",
@@ -13,6 +15,7 @@ static const int32_t
     SWAY_IPC_MESSAGE_TYPE = 2,
     EVENT_WORKSPACE       = (1 << 1);
 
+typedef struct sockaddr_un unix_sock;
 typedef struct _GtkLabel GtkLabel;
 
 
