@@ -27,14 +27,6 @@ struct data
 
 
 /**
- * @brief Returns a string containing a sway socket path.
- *
- * @return A valid path if the socket path is found, or nullptr.
- */
-gchar *get_sway_socket_path(void);
-
-
-/**
  * @brief Sends an IPC message to @p fd .
  *
  * @param fd      IPC socket file descriptor.

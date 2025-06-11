@@ -10,26 +10,6 @@
 static struct data data = { .label = nullptr };
 
 
-gchar *
-get_sway_socket_path(void)
-{
-    gchar path[PATH_MAX] = { '\0' };
-    FILE *fp             = popen(SOCKET_CMD, "r");
-
-    if (fp == nullptr) return nullptr;
-
-    if (fgets(path, sizeof(path), fp) != nullptr)
-        path[strcspn(path, "\n")] = 0;
-    else {
-        pclose(fp);
-        return nullptr;
-    }
-
-    pclose(fp);
-    return strdup(path);
-}
-
-
 gint32
 send_ipc_message(gint32       sockfd,
                  guint32      type,
@@ -83,7 +63,7 @@ err:
 gpointer
 ws_listener(gpointer args)
 {
-    gchar *socket_path = get_sway_socket_path();
+    gchar *socket_path = getenv("SWAYSOCK");
     if    (socket_path == nullptr) return nullptr;
 
     gint32    sockfd = 0;
@@ -101,7 +81,6 @@ ws_listener(gpointer args)
         return nullptr;
     }
 
-    g_free(socket_path);
     send_ipc_message(sockfd, SWAY_IPC_MESSAGE_TYPE, "[\"workspace\"]");
 
     gchar header [6];
