@@ -49,6 +49,48 @@ send_ipc_message(gint32       sockfd,
 }
 
 
+void
+read_workspace_json(gchar  *workspace_name,
+                    gint32  sockfd,
+                    guint32 length)
+{
+    gchar *payload = g_malloc(length + 1);
+    if (payload == NULL || read(sockfd, payload, length) <= -1) goto err;
+
+    cJSON
+        *root    = cJSON_Parse(payload),
+        *type    = NULL,
+        *current = NULL,
+        *name    = NULL;
+
+    g_free(payload);
+    if (!root) {
+        print_err("read_workspace_json(...): Failed to parse JSON:\n%s",
+                  payload);
+        goto err;
+    }
+
+    type = cJSON_GetObjectItem(root, "change");
+    if (type == NULL) goto err;
+
+    if (strncmp(type->valuestring, "focus", 5) == 0) {
+        current = cJSON_GetObjectItem(root, "current");
+        if (current == NULL) goto err;
+
+        name = cJSON_GetObjectItem(current, "name");
+        if (!cJSON_IsString(name)) goto err;
+
+        strncpy(workspace_name, name->valuestring, 3);
+    }
+
+    cJSON_Delete(root);
+    return;
+
+err:
+    strncpy(workspace_name, "1\0", 2);
+}
+
+
 gpointer
 ws_listener_thread(gpointer /* args */)
 {
@@ -101,48 +143,6 @@ ws_listener_thread(gpointer /* args */)
     g_free(header);
     close(sockfd);
     return NULL;
-}
-
-
-void
-read_workspace_json(gchar  *workspace_name,
-                    gint32  sockfd,
-                    guint32 length)
-{
-    gchar *payload = g_malloc(length + 1);
-    if (payload == NULL || read(sockfd, payload, length) <= -1) goto err;
-
-    cJSON
-        *root    = cJSON_Parse(payload),
-        *type    = NULL,
-        *current = NULL,
-        *name    = NULL;
-
-    g_free(payload);
-    if (!root) {
-        print_err("read_workspace_json(...): Failed to parse JSON:\n%s",
-                  payload);
-        goto err;
-    }
-
-    type = cJSON_GetObjectItem(root, "change");
-    if (type == NULL) goto err;
-
-    if (strncmp(type->valuestring, "focus", 5) == 0) {
-        current = cJSON_GetObjectItem(root, "current");
-        if (current == NULL) goto err;
-
-        name = cJSON_GetObjectItem(current, "name");
-        if (!cJSON_IsString(name)) goto err;
-
-        strncpy(workspace_name, name->valuestring, strlen(name->valuestring));
-    }
-
-    cJSON_Delete(root);
-    return;
-
-err:
-    strncpy(workspace_name, "1", 2);
 }
 
 
