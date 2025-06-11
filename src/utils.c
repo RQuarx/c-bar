@@ -10,18 +10,17 @@ void
 fprint_time(FILE *restrict stream)
 {
     struct timeval tv                  = {};
-    struct tm     *tm_info             = g_new(struct tm, 1);
-    time_t         seconds_since_epoch = time(NULL);
+    struct tm      tm_info             = {};
+    time_t         seconds_since_epoch = time(nullptr);
 
-    gettimeofday(&tv, NULL);
-    localtime_r(&seconds_since_epoch, tm_info);
+    gettimeofday(&tv, nullptr);
+    localtime_r (&seconds_since_epoch, &tm_info);
 
     gint64 milliseconds = tv.tv_usec / 1000;
     gint32
-        minutes = tm_info->tm_min,
-        seconds = tm_info->tm_sec;
+        minutes = tm_info.tm_min,
+        seconds = tm_info.tm_sec;
 
-    g_free(tm_info);
     fprintf(stream, "%02d:%02d.%03ld", minutes, seconds, milliseconds);
 }
 

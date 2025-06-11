@@ -1,5 +1,3 @@
-#include <unistd.h>
-
 #include <sys/socket.h>
 #include <sys/un.h>
 
@@ -16,18 +14,18 @@ get_sway_socket_path(void)
     gchar path[PATH_MAX] = { '\0' };
     FILE *fp             = popen(SOCKET_CMD, "r");
 
-    if (fp == NULL) {
+    if (fp == nullptr) {
         print_err("get_sway_socket_path(): Failed to run command %s: %s",
                   SOCKET_CMD, ERR);
-        return NULL;
+        return nullptr;
     }
 
-    if (fgets(path, sizeof(path), fp) != NULL)
+    if (fgets(path, sizeof(path), fp) != nullptr)
         path[strcspn(path, "\n")] = 0;
     else {
         print_err("get_sway_socket_path(): Failed to fgets: %s", ERR);
         pclose(fp);
-        return NULL;
+        return nullptr;
     }
 
     pclose(fp);
@@ -55,13 +53,13 @@ read_workspace_json(gchar  *workspace_name,
                     guint32 length)
 {
     gchar *payload = g_malloc(length + 1);
-    if (payload == NULL || read(sockfd, payload, length) <= -1) goto err;
+    if (payload == nullptr || read(sockfd, payload, length) <= -1) goto err;
 
     cJSON
         *root    = cJSON_Parse(payload),
-        *type    = NULL,
-        *current = NULL,
-        *name    = NULL;
+        *type    = nullptr,
+        *current = nullptr,
+        *name    = nullptr;
 
     g_free(payload);
     if (!root) {
@@ -71,11 +69,11 @@ read_workspace_json(gchar  *workspace_name,
     }
 
     type = cJSON_GetObjectItem(root, "change");
-    if (type == NULL) goto err;
+    if (type == nullptr) goto err;
 
     if (strncmp(type->valuestring, "focus", 5) == 0) {
         current = cJSON_GetObjectItem(root, "current");
-        if (current == NULL) goto err;
+        if (current == nullptr) goto err;
 
         name = cJSON_GetObjectItem(current, "name");
         if (!cJSON_IsString(name)) goto err;
@@ -92,10 +90,10 @@ err:
 
 
 gpointer
-ws_listener_thread(gpointer args)
+ws_listener(gpointer args)
 {
     gchar *socket_path = get_sway_socket_path();
-    if    (socket_path == NULL) return NULL;
+    if    (socket_path == nullptr) return nullptr;
 
     gint32    sockfd = 0;
     unix_sock addr   = {};
@@ -104,7 +102,7 @@ ws_listener_thread(gpointer args)
     if (sockfd == -1) {
         print_err("socket(...): Failed to create a new socket: %s",
                   ERR);
-        return NULL;
+        return nullptr;
     }
 
     memset(&addr, 0, sizeof(unix_sock));
@@ -114,7 +112,7 @@ ws_listener_thread(gpointer args)
     if (connect(sockfd, SOCKADDR(&addr), sizeof(unix_sock)) == -1) {
         print_err("connect(...): Failed to connect to a socket: %s", ERR);
         close(sockfd);
-        return NULL;
+        return nullptr;
     }
 
     g_free(socket_path);
@@ -125,11 +123,6 @@ ws_listener_thread(gpointer args)
         length = 0,
         type   = 0;
 
-    struct data data = {
-        .label = WIDGETS(args)->ws_label,
-        .text  = g_new(gchar, 3)
-    };
-
     while (TRUE) {
         if (read   (sockfd, header, 6) != 6 ||
             strncmp(header, MAGIC, 6)  != 0) break;
@@ -138,67 +131,67 @@ ws_listener_thread(gpointer args)
         read(sockfd, &type,   4);
 
         read_workspace_json(data.text, sockfd, length);
-        if (data.text == NULL) continue;
+        if ((gchar *)data.text == nullptr) continue;
 
+        data.label = WIDGETS(args)->ws_label;
         g_idle_add_once(update_label, &data);
     }
 
     close(sockfd);
-    return NULL;
+    return nullptr;
 }
 
 
 gpointer
-bat_and_time_listener(gpointer args)
+battery_listener(gpointer args)
 {
-    FILE      *bat_file  = NULL;
-    struct tm *time_info = g_new(struct tm, 1);
-    time_t     now       = 0;
-    guint8     cycle     = 4;
-
-    struct data
-        bat_data = {
-            .label = WIDGETS(args)->battery_label,
-            .text  = g_new(gchar, 4)
-        },
-        time_data = {
-            .label = WIDGETS(args)->time_label,
-            .text  = g_new(gchar, 20)
-        };
+    FILE *bat_file = nullptr;
 
     while (TRUE) {
-        if (cycle == 4) {
-            bat_file     = fopen(BAT_FILE, "r");
-            if (bat_file == NULL) break;
+        bat_file     = fopen(BAT_FILE, "r");
+        if (bat_file == nullptr) break;
 
-            for (guint8 i = 0; i < 5; i++) bat_data.text[i] = '\0';
-            fseek(bat_file, 0, SEEK_SET);
+        for (guint8 i = 0; i < 20; i++) data.text[i] = '\0';
+        fseek(bat_file, 0, SEEK_SET);
 
-            if (fgets(bat_data.text, 5, bat_file) == NULL) break;
-            fclose(bat_file);
+        if (fgets(data.text, 5, bat_file) == nullptr) break;
+        fclose(bat_file);
 
-            for (guint8 i = 0; i < 4; i++) {
-                if (bat_data.text[i] != '\n') continue;
+        for (guint8 i = 0; i < 4; i++) {
+            if (data.text[i] != '\n') continue;
 
-                bat_data.text[i] = '%';
-                break;
-            }
-
-            g_idle_add_once(update_label, &bat_data);
-            cycle = 0;
+            data.text[i] = '%';
+            break;
         }
 
-        now = time(NULL);
-        localtime_r(&now, time_info);
-
-        strftime(time_data.text, 20, "%H:%M %a %d %b", time_info);
-
-        g_idle_add_once(update_label, &time_data);
-
-        cycle++;
-        sleep(1);
+        data.label = WIDGETS(args)->battery_label;
+        g_idle_add_once(update_label, &data);
+        sleep(60);
     }
 
-    g_free(time_info);
-    return NULL;
+    return nullptr;
+}
+
+
+gpointer
+time_listener(gpointer args)
+{
+    struct tm time_info = {};
+    time_t    now       = 0;
+
+    while (TRUE) {
+        now = time(nullptr);
+        localtime_r(&now, &time_info);
+
+        strftime(data.text, 20, "%H:%M %a %d %b", &time_info);
+
+        data.label = WIDGETS(args)->time_label;
+        g_idle_add_once(update_label, &data);
+
+        now = time(nullptr);
+        localtime_r(&now, &time_info);
+        sleep(60 - time_info.tm_sec);
+    }
+
+    return nullptr;
 }

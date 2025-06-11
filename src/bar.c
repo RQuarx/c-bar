@@ -1,13 +1,14 @@
+#include "modules.h"
 #include "utils.h"
 #include "bar.h"
 
 
-struct bar_widgets *
-create_bar()
+gboolean
+create_bar(struct bar_widgets *widgets)
 {
-    GError         *err          = NULL;
+    GError         *err          = nullptr;
     GtkCssProvider *css_provider = gtk_css_provider_new();
-    if (css_provider == NULL) {
+    if (css_provider == nullptr) {
         print_err("Failed to create a GtkCssProvider.");
         return FALSE;
     }
@@ -27,9 +28,7 @@ create_bar()
     );
     g_object_unref(css_provider);
 
-    struct bar_widgets *widgets = g_new(struct bar_widgets, 1);
-
-    GtkWindow *window = NULL;
+    GtkWindow *window = nullptr;
 
     create_window        (&window);
     create_container     (window, widgets);
@@ -38,7 +37,7 @@ create_bar()
     create_bat_indicator (widgets);
 
     gtk_widget_show_all(GTK_WIDGET(window));
-    return widgets;
+    return TRUE;
 }
 
 
@@ -120,7 +119,16 @@ create_time_indicator(struct bar_widgets *widgets)
         *tm_corner_l  = new_hbox(0),
         *tm_corner_r  = new_hbox(0);
 
-    widgets->time_label = GTK_LABEL(gtk_label_new("00:00 Sun 0 Jan"));
+    struct tm time_info = {};
+    time_t    now       = 0;
+
+    now = time(nullptr);
+    localtime_r(&now, &time_info);
+
+    gchar label_text[20];
+    strftime(label_text, 20, "%H:%M %a %d %b", &time_info);
+
+    widgets->time_label = GTK_LABEL(gtk_label_new(label_text));
 
     /* Time container */
     gtk_widget_set_halign(GTK_WIDGET(tm_box), GTK_ALIGN_CENTER);

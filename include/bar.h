@@ -66,15 +66,10 @@ struct bar_widgets
 
 #define WIDGETS(ptr) ((struct bar_widgets *)ptr)
 
-struct data
-{
-    GtkLabel *label;
-    gchar    *text;
-};
 
 GtkBox *new_hbox(gint32 spacing);
 
-struct bar_widgets *create_bar(void);
+gboolean create_bar(struct bar_widgets *widgets);
 
 void
     create_window        (GtkWindow **window),
