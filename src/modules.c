@@ -7,6 +7,9 @@
 #include "bar.h"
 
 
+static struct data data = { .label = nullptr };
+
+
 gchar *
 get_sway_socket_path(void)
 {
@@ -48,6 +51,7 @@ read_workspace_json(gchar  *workspace_name,
 {
     gchar *payload = g_malloc(length + 1);
     if (payload == nullptr || read(sockfd, payload, length) <= -1) goto err;
+    payload[length] = '\0';
 
     cJSON
         *root    = cJSON_Parse(payload),
@@ -63,10 +67,7 @@ read_workspace_json(gchar  *workspace_name,
 
     if (strncmp(type->valuestring, "focus", 5) == 0) {
         current = cJSON_GetObjectItem(root, "current");
-        if (current == nullptr) goto err;
-
-        name = cJSON_GetObjectItem(current, "name");
-        if (!cJSON_IsString(name)) goto err;
+        name    = cJSON_GetObjectItem(current, "name");
 
         strncpy(workspace_name, name->valuestring, 3);
     }
@@ -116,7 +117,6 @@ ws_listener(gpointer args)
         read(sockfd, &type,   4);
 
         read_workspace_json(data.text, sockfd, length);
-        if ((gchar *)data.text == nullptr) continue;
 
         data.label = WIDGETS(args)->ws_label;
         g_idle_add_once(update_label, &data);

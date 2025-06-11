@@ -26,11 +26,6 @@ struct data
 };
 
 
-static struct data data = {
-    .label = nullptr
-};
-
-
 /**
  * @brief Returns a string containing a sway socket path.
  *

@@ -3,7 +3,7 @@ project(
     'c',
     default_options: [
         'c_std=c23',
-        'optimization=0',
+        'optimization=3',
         'warning_level=3'
     ]
 )
